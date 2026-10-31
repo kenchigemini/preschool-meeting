@@ -32,58 +32,94 @@
       border: 1.5px solid #000000;
     }
     .signin-row-height {
-      height: 48px;
+      height: 40px;
     }
 
-    /* A4 列印與 PDF 導出專屬優化設定 */
+    /* A4 列印與 PDF 導出專屬優化設定（解決控制按鈕列疊加問題） */
     @media print {
       @page {
         size: A4 portrait;
-        margin: 8mm 10mm; /* 縮小頁面邊界，確保不超出 */
+        margin: 8mm 10mm;
       }
       body {
         background-color: #ffffff !important;
         color: #000000 !important;
+        overflow: visible !important;
       }
-      .no-print {
+
+      /* 確保無列印標籤在列印時擁有最高優先權徹底隱藏 */
+      .no-print,
+      .hidden,
+      #printModal .no-print {
         display: none !important;
       }
+
+      /* 解鎖預覽 Modal 容器 */
+      #printModal {
+        position: static !important;
+        inset: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        display: block !important;
+      }
+
       .print-page {
         box-shadow: none !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
-        max-height: 275mm !important;
-        page-break-after: always;
-        page-break-inside: avoid !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
       }
-      .page-break {
+
+      /* 會議紀錄：內容過長時自然跨頁 */
+      #pageMinutes {
+        page-break-after: auto !important;
+        page-break-inside: auto !important;
+      }
+
+      /* 僅在會議紀錄顯示時，簽到表才自動換頁 */
+      #pageMinutes:not(.hidden) ~ #pageSignin {
         page-break-before: always !important;
         break-before: page !important;
+      }
+
+      #pageSignin {
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       
       .print-table, .print-table th, .print-table td {
         border: 1.5px solid #000000 !important;
       }
       
-      /* 簽到表列印專用尺寸（精算符合 A4 高度） */
       .signin-table {
         border: 2px solid #000000 !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 6px !important;
+        width: 100% !important;
       }
       .signin-table th {
-        padding: 4px 0 !important;
-        font-size: 13pt !important;
+        padding: 3px 0 !important;
+        font-size: 11pt !important;
       }
       .signin-table td {
-        height: 40px !important; /* 控制單行高度，確保 15 行完美塞進 A4 */
-        padding: 2px 4px !important;
-        font-size: 12pt !important;
+        height: 32px !important;
+        padding: 1px 4px !important;
+        font-size: 10.5pt !important;
       }
       
       .stamp-box {
-        min-height: 80px !important;
+        min-height: 70px !important;
       }
     }
   </style>
@@ -148,8 +184,8 @@
       <h2 class="text-lg font-bold text-gray-800 border-b pb-3 mb-4 flex items-center gap-2">
         <i class="fa-solid fa-circle-info text-blue-600"></i> 會議基本資訊
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="lg:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">會議名稱</label>
           <input type="text" id="meetingTitle" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" value="115學年度第1學期期初園務會議">
         </div>
@@ -158,8 +194,12 @@
           <input type="date" id="meetingDate" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">會議時間</label>
-          <input type="text" id="meetingTime" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="14:00 - 16:00">
+          <label class="block text-sm font-medium text-gray-700 mb-1">會議開始時間</label>
+          <input type="text" id="meetingTime" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="例如：14:00">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">會議結束時間 (散會時間)</label>
+          <input type="text" id="meetingEndTime" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="例如：16:00">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">會議地點</label>
@@ -173,9 +213,9 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">紀錄人</label>
           <input type="text" id="recorder" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="輸入紀錄人姓名">
         </div>
-        <div class="md:col-span-2 lg:col-span-3">
+        <div class="lg:col-span-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">出席人員（可留空手簽，或輸入名單）</label>
-          <input type="text" id="attendees" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="例如：全體教保服務人員及廚工，詳如簽到表">
+          <input type="text" id="attendees" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="例如：全體教保服務人員，詳如簽到表">
         </div>
       </div>
     </div>
@@ -188,7 +228,6 @@
   <div id="printModal" class="fixed inset-0 bg-black/60 z-50 hidden flex flex-col justify-between items-center p-2 md:p-6 overflow-y-auto">
     <div class="bg-white rounded-t-lg w-full max-w-4xl p-4 flex flex-wrap justify-between items-center gap-3 no-print border-b">
       <div class="flex items-center space-x-2">
-        <span class="font-bold text-gray-800">列印與導出選項：</span>
         <button id="filterAll" class="px-3 py-1 rounded text-sm font-medium bg-blue-600 text-white">全部 (紀錄+簽到表)</button>
         <button id="filterMinutes" class="px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">僅會議紀錄</button>
         <button id="filterSignin" class="px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">僅簽到表</button>
@@ -206,7 +245,7 @@
     <!-- A4 預覽紙張區域 -->
     <div class="bg-gray-100 w-full max-w-4xl flex-1 p-4 overflow-y-auto flex flex-col items-center gap-6">
       
-      <!-- 第一頁：會議紀錄 -->
+      <!-- 第一頁（或多頁）：會議紀錄 -->
       <div id="pageMinutes" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] p-8 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
         <h2 id="pdfMeetingTitle" class="text-lg font-bold text-center mb-5 border-b-2 border-black pb-2">會議紀錄</h2>
@@ -215,31 +254,33 @@
           <tr>
             <td class="bg-gray-100 font-bold p-2 w-20 border border-black text-center">日 期</td>
             <td id="pdfDate" class="p-2 border border-black w-1/3"></td>
-            <td class="bg-gray-100 font-bold p-2 w-20 border border-black text-center">時 間</td>
+            <td class="bg-gray-100 font-bold p-2 w-24 border border-black text-center">會議時間</td>
             <td id="pdfTime" class="p-2 border border-black"></td>
           </tr>
           <tr>
             <td class="bg-gray-100 font-bold p-2 border border-black text-center">地 點</td>
             <td id="pdfLocation" class="p-2 border border-black"></td>
-            <td class="bg-gray-100 font-bold p-2 border border-black text-center">主 持</td>
-            <td id="pdfChair" class="p-2 border border-black"></td>
+            <td class="bg-gray-100 font-bold p-2 border border-black text-center">結束時間</td>
+            <td id="pdfEndTime" class="p-2 border border-black"></td>
           </tr>
           <tr>
+            <td class="bg-gray-100 font-bold p-2 border border-black text-center">主 持</td>
+            <td id="pdfChair" class="p-2 border border-black"></td>
             <td class="bg-gray-100 font-bold p-2 border border-black text-center">紀 錄</td>
             <td id="pdfRecorder" class="p-2 border border-black"></td>
+          </tr>
+          <tr>
             <td class="bg-gray-100 font-bold p-2 border border-black text-center">出 席</td>
-            <td id="pdfAttendees" class="p-2 border border-black"></td>
+            <td id="pdfAttendees" colspan="3" class="p-2 border border-black"></td>
           </tr>
         </table>
 
-        <div class="space-y-4 mb-6">
-          <h3 class="font-bold text-base border-b border-black pb-1 mb-2">壹、各組工作報告與研討事項</h3>
-          <div id="pdfGroupReports" class="space-y-3"></div>
-        </div>
+        <!-- 各項會議報告與討論內容 -->
+        <div id="pdfGroupReports" class="space-y-4 mb-6"></div>
 
         <!-- 4 欄核章欄 -->
         <div class="mt-6 pt-2">
-          <h3 class="font-bold text-base mb-2">貳、權責主管與人員核章</h3>
+          <h3 class="font-bold text-base mb-2">權責主管與人員核章</h3>
           <div class="grid grid-cols-4 gap-3 text-center">
             <div class="border border-black">
               <div class="bg-gray-100 font-bold py-1 border-b border-black">紀錄</div>
@@ -261,8 +302,8 @@
         </div>
       </div>
 
-      <!-- 第二頁：獨立會議簽到表 -->
-      <div id="pageSignin" class="print-page page-break bg-white w-full max-w-[210mm] min-h-[297mm] p-6 shadow-lg text-black text-sm relative">
+      <!-- 第二頁：獨立會議簽到表（固定單張 A4） -->
+      <div id="pageSignin" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] p-6 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
         <h2 id="pdfSigninTitle" class="text-lg font-bold text-center mb-3 border-b-2 border-black pb-1">會議簽到表</h2>
 
@@ -274,7 +315,7 @@
 
         <table class="signin-table mb-4">
           <thead>
-            <tr class="bg-gray-100" style="height: 40px;">
+            <tr class="bg-gray-100" style="height: 38px;">
               <th class="w-1/4 text-center text-base font-bold">職 稱</th>
               <th class="w-1/4 text-center text-base font-bold">姓 名</th>
               <th class="w-1/3 text-center text-base font-bold">簽 到</th>
@@ -310,28 +351,31 @@
     };
 
     const GROUPS = [
+      { id: 'speech', name: '主席致詞', placeholder: '輸入主席致詞內容...' },
+      { id: 'proposals', name: '提案討論', placeholder: '輸入提案內容與討論過程...' },
+      { id: 'resolutions', name: '決議事項', placeholder: '輸入各案決議結果...' },
       { id: 'director', name: '園主任', placeholder: '輸入園主任報告與指示事項...' },
-      { id: 'curriculum', name: '教保組長', placeholder: '輸入教保組課程、教學與活動研討事項...' },
+      { id: 'curriculum', name: '教保組', placeholder: '輸入教保組課程、教學與活動研討事項...' },
       { id: 'childcare', name: '保育組', placeholder: '輸入衛生保健、幼兒安全與保育事項...' },
       { id: 'it', name: '資訊組', placeholder: '輸入資訊設備、網頁維護與線上教學事項...' },
       { id: 'general', name: '總務組', placeholder: '輸入修繕、採購、環境維護事項...' },
       { id: 'lunch', name: '餐點組（午餐組）', placeholder: '輸入幼兒午餐菜單、採購與衛生檢查事項...' },
       { id: 'snack', name: '餐點組（點心組）', placeholder: '輸入點心安排、食材備料事項...' },
-      { id: 'motions', name: '臨時動議與綜合決議', placeholder: '輸入臨時提出之議題與最終決議事項...' }
+      { id: 'motions', name: '臨時動議', placeholder: '輸入臨時提出之議題與研討...' }
     ];
 
     const SIGNIN_ROLES = [
       '校長',
-      '園主任',
-      '教保組長',
-      '總務組',
-      '資訊組',
-      '保育組',
-      '教保員',
-      '教保員',
-      '教保員',
-      '廚工',
-      '廚工',
+      '綿羊班',
+      '綿羊班',
+      '企鵝班',
+      '企鵝班',
+      '天鵝班',
+      '天鵝班',
+      '花鹿班',
+      '花鹿班',
+      '行政教保員',
+      '',
       '',
       '',
       '',
@@ -344,11 +388,12 @@
     let localData = {
       title: '115學年度第1學期期初園務會議',
       date: new Date().toISOString().split('T')[0],
-      time: '14:00 - 16:00',
+      time: '14:00',
+      endTime: '16:00',
       location: '幼兒園大班教室',
       chairperson: '',
       recorder: '',
-      attendees: '全體教保服務人員及廚工，詳如簽到表',
+      attendees: '全體教保服務人員，詳如簽到表',
       reports: {}
     };
 
@@ -396,11 +441,12 @@
     }
 
     function bindEvents() {
-      ['meetingTitle', 'meetingDate', 'meetingTime', 'meetingLocation', 'chairperson', 'recorder', 'attendees'].forEach(id => {
+      ['meetingTitle', 'meetingDate', 'meetingTime', 'meetingEndTime', 'meetingLocation', 'chairperson', 'recorder', 'attendees'].forEach(id => {
         document.getElementById(id).addEventListener('input', (e) => {
           if (id === 'meetingTitle') localData.title = e.target.value;
           else if (id === 'meetingDate') localData.date = e.target.value;
           else if (id === 'meetingTime') localData.time = e.target.value;
+          else if (id === 'meetingEndTime') localData.endTime = e.target.value;
           else if (id === 'meetingLocation') localData.location = e.target.value;
           else if (id === 'chairperson') localData.chairperson = e.target.value;
           else if (id === 'recorder') localData.recorder = e.target.value;
@@ -425,11 +471,12 @@
           id: newId,
           title: newTitle.trim(),
           date: new Date().toISOString().split('T')[0],
-          time: '14:00 - 16:00',
+          time: '14:00',
+          endTime: '16:00',
           location: '幼兒園大班教室',
           chairperson: '',
           recorder: '',
-          attendees: '全體教保服務人員及廚工，詳如簽到表',
+          attendees: '全體教保服務人員，詳如簽到表',
           reports: {},
           updatedAt: new Date().toISOString()
         };
@@ -534,11 +581,12 @@
               id: currentMeetingId,
               title: '115學年度第1學期期初園務會議',
               date: new Date().toISOString().split('T')[0],
-              time: '14:00 - 16:00',
+              time: '14:00',
+              endTime: '16:00',
               location: '幼兒園大班教室',
               chairperson: '',
               recorder: '',
-              attendees: '全體教保服務人員及廚工，詳如簽到表',
+              attendees: '全體教保服務人員，詳如簽到表',
               reports: {}
             };
             updateUIFromData();
@@ -566,6 +614,7 @@
       if (localData.title !== undefined) document.getElementById('meetingTitle').value = localData.title;
       if (localData.date !== undefined) document.getElementById('meetingDate').value = localData.date;
       if (localData.time !== undefined) document.getElementById('meetingTime').value = localData.time;
+      if (localData.endTime !== undefined) document.getElementById('meetingEndTime').value = localData.endTime;
       if (localData.location !== undefined) document.getElementById('meetingLocation').value = localData.location;
       if (localData.chairperson !== undefined) document.getElementById('chairperson').value = localData.chairperson;
       if (localData.recorder !== undefined) document.getElementById('recorder').value = localData.recorder;
@@ -584,22 +633,23 @@
       document.getElementById('pdfSigninTitle').innerText = (localData.title || '') + ' 會議簽到表';
       document.getElementById('pdfDate').innerText = localData.date || '未填寫';
       document.getElementById('pdfTime').innerText = localData.time || '未填寫';
+      document.getElementById('pdfEndTime').innerText = localData.endTime || '未填寫';
       document.getElementById('pdfLocation').innerText = localData.location || '未填寫';
       document.getElementById('pdfChair').innerText = localData.chairperson || '';
       document.getElementById('pdfRecorder').innerText = localData.recorder || '';
       document.getElementById('pdfAttendees').innerText = localData.attendees || '';
 
       document.getElementById('pdfSigninDate').innerText = localData.date || '未填寫';
-      document.getElementById('pdfSigninTime').innerText = localData.time || '未填寫';
+      document.getElementById('pdfSigninTime').innerText = (localData.time || '') + (localData.endTime ? (' - ' + localData.endTime) : '');
       document.getElementById('pdfSigninLocation').innerText = localData.location || '未填寫';
 
       const reportsContainer = document.getElementById('pdfGroupReports');
       reportsContainer.innerHTML = GROUPS.map(g => {
-        const text = localData.reports && localData.reports[g.id] ? localData.reports[g.id] : '（無事項）';
+        const text = localData.reports && localData.reports[g.id] ? localData.reports[g.id] : '（無）';
         return `
           <div class="border-b border-gray-200 pb-2">
             <div class="font-bold text-gray-900 mb-1">【${g.name}】</div>
-            <div class="text-gray-800 whitespace-pre-wrap pl-2">${text}</div>
+            <div class="text-gray-800 whitespace-pre-wrap pl-2 text-sm">${text}</div>
           </div>
         `;
       }).join('');
