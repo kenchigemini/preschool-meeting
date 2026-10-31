@@ -18,11 +18,28 @@
       color: #1f2937;
     }
 
-    /* A4 列印與預覽樣式設定 */
+    /* 螢幕編輯與預覽通用樣式 */
+    .signin-table {
+      border: 2px solid #000000 !important;
+      border-collapse: collapse !important;
+      width: 100%;
+    }
+    .signin-table th, .signin-table td {
+      border: 1.5px solid #000000 !important;
+    }
+    .stamp-box {
+      min-height: 85px;
+      border: 1.5px solid #000000;
+    }
+    .signin-row-height {
+      height: 48px;
+    }
+
+    /* A4 列印與 PDF 導出專屬優化設定 */
     @media print {
       @page {
         size: A4 portrait;
-        margin: 12mm;
+        margin: 8mm 10mm; /* 縮小頁面邊界，確保不超出 */
       }
       body {
         background-color: #ffffff !important;
@@ -37,6 +54,9 @@
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
+        max-height: 275mm !important;
+        page-break-after: always;
+        page-break-inside: avoid !important;
       }
       .page-break {
         page-break-before: always !important;
@@ -47,33 +67,24 @@
         border: 1.5px solid #000000 !important;
       }
       
-      .signin-table-print {
+      /* 簽到表列印專用尺寸（精算符合 A4 高度） */
+      .signin-table {
         border: 2px solid #000000 !important;
-        border-collapse: collapse !important;
-        width: 100% !important;
+        margin-bottom: 8px !important;
       }
-      .signin-table-print th, .signin-table-print td {
-        border: 1.5px solid #000000 !important;
+      .signin-table th {
+        padding: 4px 0 !important;
+        font-size: 13pt !important;
       }
-    }
-
-    /* 簽到表格樣式（2px 實線深黑邊框） */
-    .signin-table {
-      border: 2px solid #000000 !important;
-      border-collapse: collapse !important;
-      width: 100%;
-    }
-    .signin-table th, .signin-table td {
-      border: 1.5px solid #000000 !important;
-    }
-
-    /* 核章欄位與簽到列高度 */
-    .stamp-box {
-      min-height: 100px;
-      border: 1.5px solid #000000;
-    }
-    .signin-row-height {
-      height: 60px;
+      .signin-table td {
+        height: 40px !important; /* 控制單行高度，確保 15 行完美塞進 A4 */
+        padding: 2px 4px !important;
+        font-size: 12pt !important;
+      }
+      
+      .stamp-box {
+        min-height: 80px !important;
+      }
     }
   </style>
 </head>
@@ -198,7 +209,7 @@
       <!-- 第一頁：會議紀錄 -->
       <div id="pageMinutes" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] p-8 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
-        <h2 id="pdfMeetingTitle" class="text-lg font-bold text-center mb-6 border-b-2 border-black pb-2">會議紀錄</h2>
+        <h2 id="pdfMeetingTitle" class="text-lg font-bold text-center mb-5 border-b-2 border-black pb-2">會議紀錄</h2>
 
         <table class="w-full print-table mb-4 text-sm border-collapse border border-black">
           <tr>
@@ -221,14 +232,14 @@
           </tr>
         </table>
 
-        <div class="space-y-4 mb-8">
+        <div class="space-y-4 mb-6">
           <h3 class="font-bold text-base border-b border-black pb-1 mb-2">壹、各組工作報告與研討事項</h3>
           <div id="pdfGroupReports" class="space-y-3"></div>
         </div>
 
         <!-- 4 欄核章欄 -->
-        <div class="mt-8 pt-4">
-          <h3 class="font-bold text-base mb-3">貳、權責主管與人員核章</h3>
+        <div class="mt-6 pt-2">
+          <h3 class="font-bold text-base mb-2">貳、權責主管與人員核章</h3>
           <div class="grid grid-cols-4 gap-3 text-center">
             <div class="border border-black">
               <div class="bg-gray-100 font-bold py-1 border-b border-black">紀錄</div>
@@ -251,29 +262,29 @@
       </div>
 
       <!-- 第二頁：獨立會議簽到表 -->
-      <div id="pageSignin" class="print-page page-break bg-white w-full max-w-[210mm] min-h-[297mm] p-8 shadow-lg text-black text-sm relative">
+      <div id="pageSignin" class="print-page page-break bg-white w-full max-w-[210mm] min-h-[297mm] p-6 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
-        <h2 id="pdfSigninTitle" class="text-lg font-bold text-center mb-4 border-b-2 border-black pb-2">會議簽到表</h2>
+        <h2 id="pdfSigninTitle" class="text-lg font-bold text-center mb-3 border-b-2 border-black pb-1">會議簽到表</h2>
 
-        <div class="flex justify-between items-center text-sm font-bold mb-3 px-1">
+        <div class="flex justify-between items-center text-sm font-bold mb-2 px-1">
           <div>會議日期：<span id="pdfSigninDate"></span></div>
           <div>會議時間：<span id="pdfSigninTime"></span></div>
           <div>地點：<span id="pdfSigninLocation"></span></div>
         </div>
 
-        <table class="signin-table mb-6">
+        <table class="signin-table mb-4">
           <thead>
-            <tr class="bg-gray-100" style="height: 48px;">
-              <th class="w-1/4 text-center text-lg font-bold">職 稱</th>
-              <th class="w-1/4 text-center text-lg font-bold">姓 名</th>
-              <th class="w-1/3 text-center text-lg font-bold">簽 到</th>
-              <th class="w-1/6 text-center text-lg font-bold">備 註</th>
+            <tr class="bg-gray-100" style="height: 40px;">
+              <th class="w-1/4 text-center text-base font-bold">職 稱</th>
+              <th class="w-1/4 text-center text-base font-bold">姓 名</th>
+              <th class="w-1/3 text-center text-base font-bold">簽 到</th>
+              <th class="w-1/6 text-center text-base font-bold">備 註</th>
             </tr>
           </thead>
           <tbody id="signinTableBody"></tbody>
         </table>
 
-        <div class="flex justify-between items-center mt-6 pt-4 text-base font-bold px-2">
+        <div class="flex justify-between items-center mt-3 text-base font-bold px-2">
           <div>紀錄：__________________</div>
           <div>園主任：__________________</div>
         </div>
@@ -398,14 +409,12 @@
         });
       });
 
-      // 歷史會議切換
       document.getElementById('meetingSelect').addEventListener('change', (e) => {
         if (e.target.value) {
           switchMeeting(e.target.value);
         }
       });
 
-      // 建立新會議
       document.getElementById('createNewMeetingBtn').addEventListener('click', () => {
         const newTitle = prompt('請輸入新會議名稱：', '115學年度園務會議');
         if (!newTitle || !newTitle.trim()) return;
@@ -429,13 +438,11 @@
         listenToCurrentMeeting();
       });
 
-      // 手動儲存按鈕
       document.getElementById('saveMeetingBtn').addEventListener('click', () => {
         saveData();
         alert('儲存成功！');
       });
 
-      // 刪除會議按鈕 (修正死循環復活邏輯)
       document.getElementById('deleteMeetingBtn').addEventListener('click', async () => {
         const titleText = localData.title || '此會議';
         if (!confirm(`確定要刪除「${titleText}」嗎？\n刪除後資料將無法復原。`)) return;
@@ -443,23 +450,18 @@
         const idToDelete = currentMeetingId;
 
         try {
-          // 1. 斷開監聽器，避免刪除後自動重儲存
           if (unsubscribeCurrentDoc) {
             unsubscribeCurrentDoc();
             unsubscribeCurrentDoc = null;
           }
 
-          // 2. 從 Firestore 徹底刪除
           if (db) {
             await db.collection('meetings').doc(idToDelete).delete();
           }
 
-          // 3. 清除本機快取
           localStorage.removeItem('sanmin_meeting_data_' + idToDelete);
-
           alert('會議紀錄已成功刪除！');
 
-          // 4. 切換至預設或其他剩餘會議
           const select = document.getElementById('meetingSelect');
           const remainingOptions = Array.from(select.options).filter(opt => opt.value !== idToDelete);
 
@@ -472,7 +474,7 @@
           listenToCurrentMeeting();
         } catch (err) {
           console.error('刪除失敗：', err);
-          alert('刪除失敗，請檢查網路連線：' + err.message);
+          alert('刪除失敗：' + err.message);
         }
       });
 
@@ -492,7 +494,6 @@
         firebase.initializeApp(HARDCODED_FIREBASE_CONFIG);
         db = firebase.firestore();
 
-        // 監聽並更新選單
         db.collection('meetings').onSnapshot(snapshot => {
           const select = document.getElementById('meetingSelect');
           select.innerHTML = '';
@@ -529,7 +530,6 @@
             localData = doc.data();
             updateUIFromData();
           } else {
-            // 文件不存在（已被刪除或新建），填入預設空白，但不自動存檔避免刪除後復活
             localData = {
               id: currentMeetingId,
               title: '115學年度第1學期期初園務會議',
