@@ -97,9 +97,6 @@
         <button id="printAllBtn" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-1.5">
           <i class="fa-solid fa-print"></i> 列印全部 / PDF
         </button>
-        <button id="firebaseConfigBtn" class="bg-blue-700 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded text-sm font-medium transition flex items-center gap-1">
-          <i class="fa-solid fa-gear"></i>
-        </button>
       </div>
     </div>
   </header>
@@ -111,6 +108,29 @@
 
   <!-- 主編輯區 -->
   <main class="max-w-5xl mx-auto px-4 mt-6 no-print space-y-6">
+
+    <!-- 會議紀錄檔切換與管理卡片 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <i class="fa-solid fa-folder-open text-blue-700 text-lg"></i>
+        <span class="font-bold text-blue-900 text-sm whitespace-nowrap">切換歷史會議：</span>
+        <select id="meetingSelect" class="bg-white border border-blue-300 text-gray-800 rounded px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none flex-1 md:w-80">
+          <option value="">載入中...</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+        <button id="createNewMeetingBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-bold transition flex items-center gap-1">
+          <i class="fa-solid fa-plus"></i> 建立新會議
+        </button>
+        <button id="saveMeetingBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-bold transition flex items-center gap-1">
+          <i class="fa-solid fa-floppy-disk"></i> 儲存此會議
+        </button>
+        <button id="deleteMeetingBtn" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded text-sm font-bold transition flex items-center gap-1">
+          <i class="fa-solid fa-trash"></i> 刪除此會議
+        </button>
+      </div>
+    </div>
 
     <!-- 基本資訊卡片 -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -150,9 +170,7 @@
     </div>
 
     <!-- 各組共編區 -->
-    <div class="space-y-6" id="groupsContainer">
-      <!-- 由 JavaScript 動態生成 8 個組別編輯框 -->
-    </div>
+    <div class="space-y-6" id="groupsContainer"></div>
   </main>
 
   <!-- 全螢幕預覽 / 列印視窗 Modal -->
@@ -208,7 +226,7 @@
           <div id="pdfGroupReports" class="space-y-3"></div>
         </div>
 
-        <!-- 4 欄核章欄（下方留空實體蓋章） -->
+        <!-- 4 欄核章欄 -->
         <div class="mt-8 pt-4">
           <h3 class="font-bold text-base mb-3">貳、權責主管與人員核章</h3>
           <div class="grid grid-cols-4 gap-3 text-center">
@@ -243,7 +261,6 @@
           <div>地點：<span id="pdfSigninLocation"></span></div>
         </div>
 
-        <!-- 加粗深黑劃線與寬暢手寫欄位 -->
         <table class="signin-table mb-6">
           <thead>
             <tr class="bg-gray-100" style="height: 48px;">
@@ -265,29 +282,11 @@
     </div>
   </div>
 
-  <!-- Firebase 備用金鑰修改彈窗 -->
-  <div id="firebaseModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
-      <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-cloud text-blue-600"></i> 雲端金鑰已寫入程式碼
-      </h3>
-      <p class="text-xs text-gray-600 mb-4">目前系統已直接內建專屬的 Firebase 金鑰，所有人開啟網址即可同步編輯。如有變更需求才需修訂：</p>
-      
-      <textarea id="firebaseConfigInput" class="w-full h-40 border border-gray-300 rounded p-2 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"></textarea>
-
-      <div class="flex justify-end space-x-2">
-        <button id="resetFirebaseBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm">重置為預設金鑰</button>
-        <button id="saveFirebaseBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-sm font-bold">儲存並重新連線</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // 您提供的實體 Firebase 配置，直接硬編碼寫入系統
     const HARDCODED_FIREBASE_CONFIG = {
       apiKey: "AIzaSyCgmpuyWNPaGmZ5LhuMNmD8BwAVvczOvUg",
       authDomain: "sanmin-preschool-meeting.firebaseapp.com",
@@ -299,7 +298,6 @@
       measurementId: "G-6MDCPBSS9G"
     };
 
-    // 8 個組別欄位定義
     const GROUPS = [
       { id: 'director', name: '園主任', placeholder: '輸入園主任報告與指示事項...' },
       { id: 'curriculum', name: '教保組長', placeholder: '輸入教保組課程、教學與活動研討事項...' },
@@ -311,7 +309,6 @@
       { id: 'motions', name: '臨時動議與綜合決議', placeholder: '輸入臨時提出之議題與最終決議事項...' }
     ];
 
-    // 簽到表標準職稱 (15 列)
     const SIGNIN_ROLES = [
       '校長',
       '園主任',
@@ -331,7 +328,8 @@
     ];
 
     let db = null;
-    let meetingDocRef = null;
+    let currentMeetingId = 'sanmin_preschool_current';
+    let unsubscribeCurrentDoc = null;
     let localData = {
       title: '115學年度第1學期期初園務會議',
       date: new Date().toISOString().split('T')[0],
@@ -349,7 +347,6 @@
       renderSigninTable();
       setupFirebase();
       bindEvents();
-      loadLocalStorage();
     });
 
     function renderGroupCards() {
@@ -401,6 +398,84 @@
         });
       });
 
+      // 歷史會議切換
+      document.getElementById('meetingSelect').addEventListener('change', (e) => {
+        if (e.target.value) {
+          switchMeeting(e.target.value);
+        }
+      });
+
+      // 建立新會議
+      document.getElementById('createNewMeetingBtn').addEventListener('click', () => {
+        const newTitle = prompt('請輸入新會議名稱：', '115學年度園務會議');
+        if (!newTitle || !newTitle.trim()) return;
+
+        const newId = 'meeting_' + Date.now();
+        currentMeetingId = newId;
+        localData = {
+          id: newId,
+          title: newTitle.trim(),
+          date: new Date().toISOString().split('T')[0],
+          time: '14:00 - 16:00',
+          location: '幼兒園大班教室',
+          chairperson: '',
+          recorder: '',
+          attendees: '全體教保服務人員及廚工，詳如簽到表',
+          reports: {},
+          updatedAt: new Date().toISOString()
+        };
+
+        saveData();
+        listenToCurrentMeeting();
+      });
+
+      // 手動儲存按鈕
+      document.getElementById('saveMeetingBtn').addEventListener('click', () => {
+        saveData();
+        alert('儲存成功！');
+      });
+
+      // 刪除會議按鈕 (修正死循環復活邏輯)
+      document.getElementById('deleteMeetingBtn').addEventListener('click', async () => {
+        const titleText = localData.title || '此會議';
+        if (!confirm(`確定要刪除「${titleText}」嗎？\n刪除後資料將無法復原。`)) return;
+
+        const idToDelete = currentMeetingId;
+
+        try {
+          // 1. 斷開監聽器，避免刪除後自動重儲存
+          if (unsubscribeCurrentDoc) {
+            unsubscribeCurrentDoc();
+            unsubscribeCurrentDoc = null;
+          }
+
+          // 2. 從 Firestore 徹底刪除
+          if (db) {
+            await db.collection('meetings').doc(idToDelete).delete();
+          }
+
+          // 3. 清除本機快取
+          localStorage.removeItem('sanmin_meeting_data_' + idToDelete);
+
+          alert('會議紀錄已成功刪除！');
+
+          // 4. 切換至預設或其他剩餘會議
+          const select = document.getElementById('meetingSelect');
+          const remainingOptions = Array.from(select.options).filter(opt => opt.value !== idToDelete);
+
+          if (remainingOptions.length > 0) {
+            currentMeetingId = remainingOptions[0].value;
+          } else {
+            currentMeetingId = 'sanmin_preschool_current';
+          }
+
+          listenToCurrentMeeting();
+        } catch (err) {
+          console.error('刪除失敗：', err);
+          alert('刪除失敗，請檢查網路連線：' + err.message);
+        }
+      });
+
       document.getElementById('previewMinutesBtn').addEventListener('click', () => openPrintModal('minutes'));
       document.getElementById('previewSigninBtn').addEventListener('click', () => openPrintModal('signin'));
       document.getElementById('printAllBtn').addEventListener('click', () => openPrintModal('all'));
@@ -410,90 +485,103 @@
       document.getElementById('filterAll').addEventListener('click', () => setModalFilter('all'));
       document.getElementById('filterMinutes').addEventListener('click', () => setModalFilter('minutes'));
       document.getElementById('filterSignin').addEventListener('click', () => setModalFilter('signin'));
-
-      document.getElementById('firebaseConfigBtn').addEventListener('click', () => {
-        document.getElementById('firebaseConfigInput').value = JSON.stringify(HARDCODED_FIREBASE_CONFIG, null, 2);
-        document.getElementById('firebaseModal').classList.remove('hidden');
-      });
-      document.getElementById('resetFirebaseBtn').addEventListener('click', () => {
-        localStorage.removeItem('sanmin_firebase_config');
-        location.reload();
-      });
-      document.getElementById('saveFirebaseBtn').addEventListener('click', () => {
-        const raw = document.getElementById('firebaseConfigInput').value;
-        try {
-          localStorage.setItem('sanmin_firebase_config', raw);
-          location.reload();
-        } catch(err) {
-          alert('設定值解析錯誤');
-        }
-      });
     }
 
     function setupFirebase() {
-      let config = HARDCODED_FIREBASE_CONFIG;
-      const storedConfig = localStorage.getItem('sanmin_firebase_config');
-      if (storedConfig) {
-        try {
-          config = JSON.parse(storedConfig);
-        } catch(e) {}
-      }
-
       try {
-        firebase.initializeApp(config);
+        firebase.initializeApp(HARDCODED_FIREBASE_CONFIG);
         db = firebase.firestore();
-        meetingDocRef = db.collection('meetings').doc('sanmin_preschool_current');
 
-        meetingDocRef.onSnapshot(doc => {
-          if (doc.exists) {
-            localData = doc.data();
-            updateUIFromData();
+        // 監聽並更新選單
+        db.collection('meetings').onSnapshot(snapshot => {
+          const select = document.getElementById('meetingSelect');
+          select.innerHTML = '';
+
+          if (snapshot.empty) {
+            select.innerHTML = '<option value="sanmin_preschool_current">預設會議紀錄</option>';
+          } else {
+            snapshot.docs.forEach(doc => {
+              const d = doc.data();
+              const option = document.createElement('option');
+              option.value = doc.id;
+              option.textContent = `${d.date || '無日期'} - ${d.title || '未命名會議'}`;
+              if (doc.id === currentMeetingId) option.selected = true;
+              select.appendChild(option);
+            });
           }
-        }, err => {
-          console.error("Firestore Error:", err);
         });
+
+        listenToCurrentMeeting();
       } catch(e) {
         console.error("Firebase init failed:", e);
       }
     }
 
-    function saveData() {
-      localStorage.setItem('sanmin_meeting_data', JSON.stringify(localData));
-      if (meetingDocRef) {
-        meetingDocRef.set(localData, { merge: true }).catch(err => console.error(err));
+    function listenToCurrentMeeting() {
+      if (unsubscribeCurrentDoc) {
+        unsubscribeCurrentDoc();
+        unsubscribeCurrentDoc = null;
+      }
+
+      if (db) {
+        unsubscribeCurrentDoc = db.collection('meetings').doc(currentMeetingId).onSnapshot(doc => {
+          if (doc.exists) {
+            localData = doc.data();
+            updateUIFromData();
+          } else {
+            // 文件不存在（已被刪除或新建），填入預設空白，但不自動存檔避免刪除後復活
+            localData = {
+              id: currentMeetingId,
+              title: '115學年度第1學期期初園務會議',
+              date: new Date().toISOString().split('T')[0],
+              time: '14:00 - 16:00',
+              location: '幼兒園大班教室',
+              chairperson: '',
+              recorder: '',
+              attendees: '全體教保服務人員及廚工，詳如簽到表',
+              reports: {}
+            };
+            updateUIFromData();
+          }
+        }, err => {
+          console.error("Firestore Listen Error:", err);
+        });
       }
     }
 
-    function loadLocalStorage() {
-      const saved = localStorage.getItem('sanmin_meeting_data');
-      if (saved && !meetingDocRef) {
-        try {
-          localData = JSON.parse(saved);
-          updateUIFromData();
-        } catch(e){}
+    function switchMeeting(id) {
+      currentMeetingId = id;
+      listenToCurrentMeeting();
+    }
+
+    function saveData() {
+      localData.updatedAt = new Date().toISOString();
+      localStorage.setItem('sanmin_meeting_data_' + currentMeetingId, JSON.stringify(localData));
+      if (db) {
+        db.collection('meetings').doc(currentMeetingId).set(localData, { merge: true }).catch(err => console.error(err));
       }
     }
 
     function updateUIFromData() {
-      if (localData.title) document.getElementById('meetingTitle').value = localData.title;
-      if (localData.date) document.getElementById('meetingDate').value = localData.date;
-      if (localData.time) document.getElementById('meetingTime').value = localData.time;
-      if (localData.location) document.getElementById('meetingLocation').value = localData.location;
+      if (localData.title !== undefined) document.getElementById('meetingTitle').value = localData.title;
+      if (localData.date !== undefined) document.getElementById('meetingDate').value = localData.date;
+      if (localData.time !== undefined) document.getElementById('meetingTime').value = localData.time;
+      if (localData.location !== undefined) document.getElementById('meetingLocation').value = localData.location;
       if (localData.chairperson !== undefined) document.getElementById('chairperson').value = localData.chairperson;
       if (localData.recorder !== undefined) document.getElementById('recorder').value = localData.recorder;
       if (localData.attendees !== undefined) document.getElementById('attendees').value = localData.attendees;
 
       GROUPS.forEach(g => {
         const input = document.getElementById(`input_${g.id}`);
-        if (input && localData.reports && localData.reports[g.id] !== undefined) {
-          input.value = localData.reports[g.id];
+        if (input) {
+          input.value = (localData.reports && localData.reports[g.id] !== undefined) ? localData.reports[g.id] : '';
         }
       });
     }
 
     function openPrintModal(mode) {
-      document.getElementById('pdfMeetingTitle').innerText = localData.title + ' 會議紀錄';
-      document.getElementById('pdfSigninTitle').innerText = localData.title + ' 會議簽到表';
+      document.getElementById('pdfMeetingTitle').innerText = (localData.title || '') + ' 會議紀錄';
+      document.getElementById('pdfSigninTitle').innerText = (localData.title || '') + ' 會議簽到表';
       document.getElementById('pdfDate').innerText = localData.date || '未填寫';
       document.getElementById('pdfTime').innerText = localData.time || '未填寫';
       document.getElementById('pdfLocation').innerText = localData.location || '未填寫';
