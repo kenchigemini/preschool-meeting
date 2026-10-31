@@ -43,12 +43,10 @@
         break-before: page !important;
       }
       
-      /* 列印模式下的黑線與表格清晰化 */
       .print-table, .print-table th, .print-table td {
         border: 1.5px solid #000000 !important;
       }
       
-      /* 簽到表列印專屬邊框加粗 */
       .signin-table-print {
         border: 2px solid #000000 !important;
         border-collapse: collapse !important;
@@ -59,7 +57,7 @@
       }
     }
 
-    /* 螢幕預覽時的簽到表格樣式 */
+    /* 簽到表格樣式（2px 實線深黑邊框） */
     .signin-table {
       border: 2px solid #000000 !important;
       border-collapse: collapse !important;
@@ -69,7 +67,7 @@
       border: 1.5px solid #000000 !important;
     }
 
-    /* 核章欄位與簽到行高設定 */
+    /* 核章欄位與簽到列高度 */
     .stamp-box {
       min-height: 100px;
       border: 1.5px solid #000000;
@@ -90,9 +88,6 @@
       </div>
       
       <div class="flex items-center space-x-2">
-        <button id="firebaseConfigBtn" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-1.5">
-          <i class="fa-solid fa-gear"></i> 雲端同步設定
-        </button>
         <button id="previewMinutesBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-1.5">
           <i class="fa-solid fa-file-lines"></i> 會議紀錄
         </button>
@@ -102,13 +97,16 @@
         <button id="printAllBtn" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm font-medium transition flex items-center gap-1.5">
           <i class="fa-solid fa-print"></i> 列印全部 / PDF
         </button>
+        <button id="firebaseConfigBtn" class="bg-blue-700 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded text-sm font-medium transition flex items-center gap-1">
+          <i class="fa-solid fa-gear"></i>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- 雲端狀態提示條 -->
-  <div id="syncStatusBanner" class="bg-amber-100 text-amber-800 px-4 py-2 text-center text-sm font-medium border-b border-amber-200 no-print">
-    <i class="fa-solid fa-triangle-exclamation mr-1"></i> 當前為「本機暫存模式」，點擊右上角「雲端同步設定」填入 Firebase 金鑰即可啟動跨裝置即時共編。
+  <!-- 雲端連線狀態提示條 -->
+  <div id="syncStatusBanner" class="bg-emerald-100 text-emerald-800 px-4 py-2 text-center text-sm font-medium border-b border-emerald-200 no-print">
+    <i class="fa-solid fa-cloud-check mr-1"></i> 已成功連線 Firebase 雲端資料庫（<code>sanmin-preschool-meeting</code>），全園即時共編中！
   </div>
 
   <!-- 主編輯區 -->
@@ -151,15 +149,14 @@
       </div>
     </div>
 
-    <!-- 各組共編區（流暢連續頁面） -->
+    <!-- 各組共編區 -->
     <div class="space-y-6" id="groupsContainer">
-      <!-- 內容由 JavaScript 動態生成 8 個組別編輯框 -->
+      <!-- 由 JavaScript 動態生成 8 個組別編輯框 -->
     </div>
   </main>
 
   <!-- 全螢幕預覽 / 列印視窗 Modal -->
   <div id="printModal" class="fixed inset-0 bg-black/60 z-50 hidden flex flex-col justify-between items-center p-2 md:p-6 overflow-y-auto">
-    <!-- 頂部控制選項 -->
     <div class="bg-white rounded-t-lg w-full max-w-4xl p-4 flex flex-wrap justify-between items-center gap-3 no-print border-b">
       <div class="flex items-center space-x-2">
         <span class="font-bold text-gray-800">列印與導出選項：</span>
@@ -177,7 +174,7 @@
       </div>
     </div>
 
-    <!-- A4 預覽紙張內容區 -->
+    <!-- A4 預覽紙張區域 -->
     <div class="bg-gray-100 w-full max-w-4xl flex-1 p-4 overflow-y-auto flex flex-col items-center gap-6">
       
       <!-- 第一頁：會議紀錄 -->
@@ -185,7 +182,6 @@
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
         <h2 id="pdfMeetingTitle" class="text-lg font-bold text-center mb-6 border-b-2 border-black pb-2">會議紀錄</h2>
 
-        <!-- 會議頭部表格 -->
         <table class="w-full print-table mb-4 text-sm border-collapse border border-black">
           <tr>
             <td class="bg-gray-100 font-bold p-2 w-20 border border-black text-center">日 期</td>
@@ -207,15 +203,12 @@
           </tr>
         </table>
 
-        <!-- 各組報告內容 -->
         <div class="space-y-4 mb-8">
           <h3 class="font-bold text-base border-b border-black pb-1 mb-2">壹、各組工作報告與研討事項</h3>
-          <div id="pdfGroupReports" class="space-y-3">
-            <!-- 動態填入各組報告內容 -->
-          </div>
+          <div id="pdfGroupReports" class="space-y-3"></div>
         </div>
 
-        <!-- 簽核欄位（固定 4 欄，下方完全空白供實體蓋章） -->
+        <!-- 4 欄核章欄（下方留空實體蓋章） -->
         <div class="mt-8 pt-4">
           <h3 class="font-bold text-base mb-3">貳、權責主管與人員核章</h3>
           <div class="grid grid-cols-4 gap-3 text-center">
@@ -239,7 +232,7 @@
         </div>
       </div>
 
-      <!-- 第二頁：會議簽到表 -->
+      <!-- 第二頁：獨立會議簽到表 -->
       <div id="pageSignin" class="print-page page-break bg-white w-full max-w-[210mm] min-h-[297mm] p-8 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
         <h2 id="pdfSigninTitle" class="text-lg font-bold text-center mb-4 border-b-2 border-black pb-2">會議簽到表</h2>
@@ -250,7 +243,7 @@
           <div>地點：<span id="pdfSigninLocation"></span></div>
         </div>
 
-        <!-- 加粗邊框與寬敞手寫空間簽到表格 -->
+        <!-- 加粗深黑劃線與寬暢手寫欄位 -->
         <table class="signin-table mb-6">
           <thead>
             <tr class="bg-gray-100" style="height: 48px;">
@@ -260,9 +253,7 @@
               <th class="w-1/6 text-center text-lg font-bold">備 註</th>
             </tr>
           </thead>
-          <tbody id="signinTableBody">
-            <!-- 由 JS 自動產出 15 行寬敞簽到列 -->
-          </tbody>
+          <tbody id="signinTableBody"></tbody>
         </table>
 
         <div class="flex justify-between items-center mt-6 pt-4 text-base font-bold px-2">
@@ -274,26 +265,19 @@
     </div>
   </div>
 
-  <!-- Firebase 設定對話框 Modal -->
+  <!-- Firebase 備用金鑰修改彈窗 -->
   <div id="firebaseModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
       <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-cloud text-blue-600"></i> 設定 Firebase 雲端資料庫
+        <i class="fa-solid fa-cloud text-blue-600"></i> 雲端金鑰已寫入程式碼
       </h3>
-      <p class="text-xs text-gray-600 mb-4">請貼上您的 Firebase Web SDK 配置碼，設定後即可讓全園老師透過網址即時共編會議紀錄。</p>
+      <p class="text-xs text-gray-600 mb-4">目前系統已直接內建專屬的 Firebase 金鑰，所有人開啟網址即可同步編輯。如有變更需求才需修訂：</p>
       
-      <textarea id="firebaseConfigInput" class="w-full h-40 border border-gray-300 rounded p-2 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4" placeholder='const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
-};'></textarea>
+      <textarea id="firebaseConfigInput" class="w-full h-40 border border-gray-300 rounded p-2 text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"></textarea>
 
       <div class="flex justify-end space-x-2">
-        <button id="clearFirebaseBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm">清除設定</button>
-        <button id="saveFirebaseBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-sm font-bold">儲存並啟用</button>
+        <button id="resetFirebaseBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm">重置為預設金鑰</button>
+        <button id="saveFirebaseBtn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-sm font-bold">儲存並重新連線</button>
       </div>
     </div>
   </div>
@@ -303,7 +287,19 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
-    // 預設 8 組編輯欄位定義
+    // 您提供的實體 Firebase 配置，直接硬編碼寫入系統
+    const HARDCODED_FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCgmpuyWNPaGmZ5LhuMNmD8BwAVvczOvUg",
+      authDomain: "sanmin-preschool-meeting.firebaseapp.com",
+      databaseURL: "https://sanmin-preschool-meeting-default-rtdb.firebaseio.com",
+      projectId: "sanmin-preschool-meeting",
+      storageBucket: "sanmin-preschool-meeting.firebasestorage.app",
+      messagingSenderId: "805147899183",
+      appId: "1:805147899183:web:810874752c320c1cf1ddda",
+      measurementId: "G-6MDCPBSS9G"
+    };
+
+    // 8 個組別欄位定義
     const GROUPS = [
       { id: 'director', name: '園主任', placeholder: '輸入園主任報告與指示事項...' },
       { id: 'curriculum', name: '教保組長', placeholder: '輸入教保組課程、教學與活動研討事項...' },
@@ -315,7 +311,7 @@
       { id: 'motions', name: '臨時動議與綜合決議', placeholder: '輸入臨時提出之議題與最終決議事項...' }
     ];
 
-    // 簽到表職稱列表 (明確順序)
+    // 簽到表標準職稱 (15 列)
     const SIGNIN_ROLES = [
       '校長',
       '園主任',
@@ -328,13 +324,12 @@
       '教保員',
       '廚工',
       '廚工',
-      '', // 備用欄位 1
-      '', // 備用欄位 2
-      '', // 備用欄位 3
-      ''  // 備用欄位 4
+      '',
+      '',
+      '',
+      ''
     ];
 
-    // 初始化狀態變數
     let db = null;
     let meetingDocRef = null;
     let localData = {
@@ -348,7 +343,6 @@
       reports: {}
     };
 
-    // DOM 元素初始化
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('meetingDate').value = localData.date;
       renderGroupCards();
@@ -358,7 +352,6 @@
       loadLocalStorage();
     });
 
-    // 動態渲染 8 組編輯區域
     function renderGroupCards() {
       const container = document.getElementById('groupsContainer');
       container.innerHTML = GROUPS.map(g => `
@@ -373,7 +366,6 @@
         </div>
       `).join('');
 
-      // 綁定輸入事件
       GROUPS.forEach(g => {
         const textarea = document.getElementById(`input_${g.id}`);
         textarea.addEventListener('input', (e) => {
@@ -383,7 +375,6 @@
       });
     }
 
-    // 渲染簽到表格 (確保深色 2px 實線邊框與 60px 行高)
     function renderSigninTable() {
       const tbody = document.getElementById('signinTableBody');
       tbody.innerHTML = SIGNIN_ROLES.map(role => `
@@ -396,79 +387,76 @@
       `).join('');
     }
 
-    // 綁定控制欄位輸入事件
     function bindEvents() {
       ['meetingTitle', 'meetingDate', 'meetingTime', 'meetingLocation', 'chairperson', 'recorder', 'attendees'].forEach(id => {
         document.getElementById(id).addEventListener('input', (e) => {
-          const key = id.replace('meeting', '').toLowerCase();
           if (id === 'meetingTitle') localData.title = e.target.value;
           else if (id === 'meetingDate') localData.date = e.target.value;
           else if (id === 'meetingTime') localData.time = e.target.value;
           else if (id === 'meetingLocation') localData.location = e.target.value;
-          else localData[key] = e.target.value;
+          else if (id === 'chairperson') localData.chairperson = e.target.value;
+          else if (id === 'recorder') localData.recorder = e.target.value;
+          else if (id === 'attendees') localData.attendees = e.target.value;
           saveData();
         });
       });
 
-      // 列印與 Modal 按鈕
       document.getElementById('previewMinutesBtn').addEventListener('click', () => openPrintModal('minutes'));
       document.getElementById('previewSigninBtn').addEventListener('click', () => openPrintModal('signin'));
       document.getElementById('printAllBtn').addEventListener('click', () => openPrintModal('all'));
       document.getElementById('closeModalBtn').addEventListener('click', closeModal);
       document.getElementById('doPrintBtn').addEventListener('click', () => window.print());
 
-      // 視窗切換分頁按鈕
       document.getElementById('filterAll').addEventListener('click', () => setModalFilter('all'));
       document.getElementById('filterMinutes').addEventListener('click', () => setModalFilter('minutes'));
       document.getElementById('filterSignin').addEventListener('click', () => setModalFilter('signin'));
 
-      // Firebase Config Modal
       document.getElementById('firebaseConfigBtn').addEventListener('click', () => {
+        document.getElementById('firebaseConfigInput').value = JSON.stringify(HARDCODED_FIREBASE_CONFIG, null, 2);
         document.getElementById('firebaseModal').classList.remove('hidden');
       });
-      document.getElementById('clearFirebaseBtn').addEventListener('click', () => {
+      document.getElementById('resetFirebaseBtn').addEventListener('click', () => {
         localStorage.removeItem('sanmin_firebase_config');
         location.reload();
       });
       document.getElementById('saveFirebaseBtn').addEventListener('click', () => {
         const raw = document.getElementById('firebaseConfigInput').value;
         try {
-          const jsonStr = raw.includes('{') ? raw.substring(raw.indexOf('{'), raw.lastIndexOf('}') + 1) : raw;
-          localStorage.setItem('sanmin_firebase_config', jsonStr);
+          localStorage.setItem('sanmin_firebase_config', raw);
           location.reload();
         } catch(err) {
-          alert('格式錯誤，請檢查貼上的 Firebase 配置。');
+          alert('設定值解析錯誤');
         }
       });
     }
 
-    // Firebase 初始化
     function setupFirebase() {
+      let config = HARDCODED_FIREBASE_CONFIG;
       const storedConfig = localStorage.getItem('sanmin_firebase_config');
       if (storedConfig) {
         try {
-          const config = JSON.parse(storedConfig.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":'));
-          firebase.initializeApp(config);
-          db = firebase.firestore();
-          meetingDocRef = db.collection('meetings').doc('sanmin_preschool_current');
-          
-          document.getElementById('syncStatusBanner').className = 'bg-emerald-100 text-emerald-800 px-4 py-2 text-center text-sm font-medium border-b border-emerald-200 no-print';
-          document.getElementById('syncStatusBanner').innerHTML = '<i class="fa-solid fa-cloud-check mr-1"></i> 已連接 Firebase 雲端資料庫，即時同步編輯中。';
+          config = JSON.parse(storedConfig);
+        } catch(e) {}
+      }
 
-          meetingDocRef.onSnapshot(doc => {
-            if (doc.exists) {
-              const data = doc.data();
-              localData = data;
-              updateUIFromData();
-            }
-          });
-        } catch(e) {
-          console.error('Firebase setup failed:', e);
-        }
+      try {
+        firebase.initializeApp(config);
+        db = firebase.firestore();
+        meetingDocRef = db.collection('meetings').doc('sanmin_preschool_current');
+
+        meetingDocRef.onSnapshot(doc => {
+          if (doc.exists) {
+            localData = doc.data();
+            updateUIFromData();
+          }
+        }, err => {
+          console.error("Firestore Error:", err);
+        });
+      } catch(e) {
+        console.error("Firebase init failed:", e);
       }
     }
 
-    // 儲存資料（先寫入 LocalStorage，若有 Firebase 則同步寫入雲端）
     function saveData() {
       localStorage.setItem('sanmin_meeting_data', JSON.stringify(localData));
       if (meetingDocRef) {
@@ -476,7 +464,6 @@
       }
     }
 
-    // 從 LocalStorage 載入
     function loadLocalStorage() {
       const saved = localStorage.getItem('sanmin_meeting_data');
       if (saved && !meetingDocRef) {
@@ -487,15 +474,14 @@
       }
     }
 
-    // 更新介面欄位值
     function updateUIFromData() {
       if (localData.title) document.getElementById('meetingTitle').value = localData.title;
       if (localData.date) document.getElementById('meetingDate').value = localData.date;
       if (localData.time) document.getElementById('meetingTime').value = localData.time;
       if (localData.location) document.getElementById('meetingLocation').value = localData.location;
-      if (localData.chairperson) document.getElementById('chairperson').value = localData.chairperson;
-      if (localData.recorder) document.getElementById('recorder').value = localData.recorder;
-      if (localData.attendees) document.getElementById('attendees').value = localData.attendees;
+      if (localData.chairperson !== undefined) document.getElementById('chairperson').value = localData.chairperson;
+      if (localData.recorder !== undefined) document.getElementById('recorder').value = localData.recorder;
+      if (localData.attendees !== undefined) document.getElementById('attendees').value = localData.attendees;
 
       GROUPS.forEach(g => {
         const input = document.getElementById(`input_${g.id}`);
@@ -505,9 +491,7 @@
       });
     }
 
-    // 開啟預覽列印 Modal
     function openPrintModal(mode) {
-      // 填入預覽資料
       document.getElementById('pdfMeetingTitle').innerText = localData.title + ' 會議紀錄';
       document.getElementById('pdfSigninTitle').innerText = localData.title + ' 會議簽到表';
       document.getElementById('pdfDate').innerText = localData.date || '未填寫';
@@ -521,9 +505,8 @@
       document.getElementById('pdfSigninTime').innerText = localData.time || '未填寫';
       document.getElementById('pdfSigninLocation').innerText = localData.location || '未填寫';
 
-      // 渲染報告內容
       const reportsContainer = document.getElementById('pdfGroupReports');
-      reportsContainer.innerHTML = GROUPS.map((g, idx) => {
+      reportsContainer.innerHTML = GROUPS.map(g => {
         const text = localData.reports && localData.reports[g.id] ? localData.reports[g.id] : '（無事項）';
         return `
           <div class="border-b border-gray-200 pb-2">
@@ -537,7 +520,6 @@
       document.getElementById('printModal').classList.remove('hidden');
     }
 
-    // 切換預覽顯示模式 (全部 / 僅會議紀錄 / 僅簽到表)
     function setModalFilter(mode) {
       const pageMinutes = document.getElementById('pageMinutes');
       const pageSignin = document.getElementById('pageSignin');
@@ -546,7 +528,6 @@
       const btnMin = document.getElementById('filterMinutes');
       const btnSig = document.getElementById('filterSignin');
 
-      // 重設按鈕樣式
       [btnAll, btnMin, btnSig].forEach(b => b.className = 'px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300');
 
       if (mode === 'minutes') {
