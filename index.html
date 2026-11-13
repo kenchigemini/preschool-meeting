@@ -32,19 +32,40 @@
       border: 1.5px solid #000000;
     }
     .signin-row-height {
-      height: 40px;
+      height: 54px;
+    }
+    .remarks-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.3;
+      color: #000000;
+    }
+    .checkbox-box {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border: 1.8px solid #000000;
+      flex-shrink: 0;
+      background-color: #ffffff;
     }
 
-    /* A4 列印與 PDF 導出專屬優化設定（解決控制按鈕列疊加問題） */
+    /* A4 列印與 PDF 導出專屬優化設定 */
     @media print {
       @page {
         size: A4 portrait;
         margin: 8mm 10mm;
       }
-      body {
+      html, body {
         background-color: #ffffff !important;
         color: #000000 !important;
         overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
 
       /* 確保無列印標籤在列印時擁有最高優先權徹底隱藏 */
@@ -54,7 +75,7 @@
         display: none !important;
       }
 
-      /* 解鎖預覽 Modal 容器 */
+      /* 解鎖預覽 Modal 與外層容器，避免產生多餘空白頁 */
       #printModal {
         position: static !important;
         inset: auto !important;
@@ -70,31 +91,74 @@
         display: block !important;
       }
 
+      .print-container {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        overflow: visible !important;
+      }
+
       .print-page {
         box-shadow: none !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
         width: 100% !important;
+        max-width: none !important;
         min-height: 0 !important;
         height: auto !important;
         overflow: visible !important;
+        page-break-after: auto !important;
+        break-after: auto !important;
       }
 
-      /* 會議紀錄：內容過長時自然跨頁 */
+      /* 會議紀錄：各組內容自然接續跨頁，不留大段空白 */
       #pageMinutes {
         page-break-after: auto !important;
+        break-after: auto !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      .report-item {
+        break-inside: auto !important;
         page-break-inside: auto !important;
       }
 
-      /* 僅在會議紀錄顯示時，簽到表才自動換頁 */
+      .report-title {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+      }
+
+      .report-content {
+        orphans: 3;
+        widows: 3;
+        line-height: 1.65 !important;
+      }
+
+      /* 僅確保基本資料表、核章區與簽到表單列不被切裁 */
+      .print-table,
+      .stamp-section,
+      .signin-table tr,
+      .signin-footer {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+      /* 僅在會議紀錄顯示時，簽到表才從新的一頁開始 */
       #pageMinutes:not(.hidden) ~ #pageSignin {
         page-break-before: always !important;
         break-before: page !important;
       }
 
       #pageSignin {
-        page-break-after: avoid !important;
+        page-break-after: auto !important;
+        break-after: auto !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
@@ -110,12 +174,26 @@
       }
       .signin-table th {
         padding: 3px 0 !important;
-        font-size: 11pt !important;
+        font-size: 11.5pt !important;
       }
       .signin-table td {
-        height: 32px !important;
-        padding: 1px 4px !important;
-        font-size: 10.5pt !important;
+        height: 52px !important;
+        padding: 2px 6px !important;
+        font-size: 11pt !important;
+      }
+      .remarks-cell {
+        padding: 2px 8px !important;
+      }
+      .remarks-option {
+        font-size: 12.5pt !important;
+        line-height: 1.2 !important;
+        font-weight: 500 !important;
+        gap: 6px !important;
+      }
+      .checkbox-box {
+        width: 12.5pt !important;
+        height: 12.5pt !important;
+        border: 1.8px solid #000000 !important;
       }
       
       .stamp-box {
@@ -226,7 +304,7 @@
 
   <!-- 全螢幕預覽 / 列印視窗 Modal -->
   <div id="printModal" class="fixed inset-0 bg-black/60 z-50 hidden flex flex-col justify-between items-center p-2 md:p-6 overflow-y-auto">
-    <div class="bg-white rounded-t-lg w-full max-w-4xl p-4 flex flex-wrap justify-between items-center gap-3 no-print border-b">
+    <div class="bg-white rounded-t-lg w-full max-w-4xl p-4 flex flex-wrap justify-between items-center gap-3 no-print border-b shrink-0">
       <div class="flex items-center space-x-2">
         <button id="filterAll" class="px-3 py-1 rounded text-sm font-medium bg-blue-600 text-white">全部 (紀錄+簽到表)</button>
         <button id="filterMinutes" class="px-3 py-1 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">僅會議紀錄</button>
@@ -242,11 +320,11 @@
       </div>
     </div>
 
-    <!-- A4 預覽紙張區域 -->
-    <div class="bg-gray-100 w-full max-w-4xl flex-1 p-4 overflow-y-auto flex flex-col items-center gap-6">
+    <!-- A4 預覽紙張區域（改為 block 排版與 h-auto，防止內容長於一頁時溢出紙張底線） -->
+    <div class="print-container bg-gray-100 w-full max-w-4xl flex-1 p-4 md:p-6 overflow-y-auto block">
       
       <!-- 第一頁（或多頁）：會議紀錄 -->
-      <div id="pageMinutes" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] p-8 shadow-lg text-black text-sm relative">
+      <div id="pageMinutes" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] h-auto mx-auto mb-6 p-8 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
         <h2 id="pdfMeetingTitle" class="text-lg font-bold text-center mb-5 border-b-2 border-black pb-2">會議紀錄</h2>
 
@@ -278,8 +356,8 @@
         <!-- 各項會議報告與討論內容 -->
         <div id="pdfGroupReports" class="space-y-4 mb-6"></div>
 
-        <!-- 4 欄核章欄 -->
-        <div class="mt-6 pt-2">
+        <!-- 4 欄核章欄（設定不跨頁切裁） -->
+        <div class="stamp-section mt-6 pt-2">
           <h3 class="font-bold text-base mb-2">權責主管與人員核章</h3>
           <div class="grid grid-cols-4 gap-3 text-center">
             <div class="border border-black">
@@ -303,7 +381,7 @@
       </div>
 
       <!-- 第二頁：獨立會議簽到表（固定單張 A4） -->
-      <div id="pageSignin" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] p-6 shadow-lg text-black text-sm relative">
+      <div id="pageSignin" class="print-page bg-white w-full max-w-[210mm] min-h-[297mm] h-auto mx-auto p-6 shadow-lg text-black text-sm relative">
         <h1 class="text-xl font-bold text-center mb-1">臺北市松山區三民國小附設幼兒園</h1>
         <h2 id="pdfSigninTitle" class="text-lg font-bold text-center mb-3 border-b-2 border-black pb-1">會議簽到表</h2>
 
@@ -313,19 +391,20 @@
           <div>地點：<span id="pdfSigninLocation"></span></div>
         </div>
 
-        <table class="signin-table mb-4">
+        <table class="signin-table mb-3">
           <thead>
-            <tr class="bg-gray-100" style="height: 38px;">
-              <th class="w-1/4 text-center text-base font-bold">職 稱</th>
-              <th class="w-1/4 text-center text-base font-bold">姓 名</th>
-              <th class="w-1/3 text-center text-base font-bold">簽 到</th>
-              <th class="w-1/6 text-center text-base font-bold">備 註</th>
+            <tr class="bg-gray-100" style="height: 36px;">
+              <th class="w-[16%] text-center text-base font-bold">職 稱</th>
+              <th class="w-[16%] text-center text-base font-bold">姓 名</th>
+              <th class="w-[22%] text-center text-base font-bold">簽 到</th>
+              <th class="w-[22%] text-center text-base font-bold">簽 退</th>
+              <th class="w-[24%] text-center text-base font-bold">備 註</th>
             </tr>
           </thead>
           <tbody id="signinTableBody"></tbody>
         </table>
 
-        <div class="flex justify-between items-center mt-3 text-base font-bold px-2">
+        <div class="signin-footer flex justify-between items-center mt-2 text-base font-bold px-2">
           <div>紀錄：__________________</div>
           <div>園主任：__________________</div>
         </div>
@@ -364,6 +443,7 @@
       { id: 'motions', name: '臨時動議', placeholder: '輸入臨時提出之議題與研討...' }
     ];
 
+    /* 保留 2 個空白列（共 12 列），確保底部核章欄維持在單張 A4 頁面內 */
     const SIGNIN_ROLES = [
       '校長',
       '綿羊班',
@@ -375,9 +455,6 @@
       '花鹿班',
       '花鹿班',
       '行政教保員',
-      '',
-      '',
-      '',
       '',
       ''
     ];
@@ -436,6 +513,11 @@
           <td class="border-black"></td>
           <td class="border-black"></td>
           <td class="border-black"></td>
+          <td class="border-black px-2 py-1 text-left align-middle remarks-cell">
+            <div class="remarks-option"><span class="checkbox-box"></span><span>加班補休</span></div>
+            <div class="remarks-option"><span class="checkbox-box"></span><span>行政輪值</span></div>
+            <div class="remarks-option"><span class="checkbox-box"></span><span>課後班</span></div>
+          </td>
         </tr>
       `).join('');
     }
@@ -647,9 +729,9 @@
       reportsContainer.innerHTML = GROUPS.map(g => {
         const text = localData.reports && localData.reports[g.id] ? localData.reports[g.id] : '（無）';
         return `
-          <div class="border-b border-gray-200 pb-2">
-            <div class="font-bold text-gray-900 mb-1">【${g.name}】</div>
-            <div class="text-gray-800 whitespace-pre-wrap pl-2 text-sm">${text}</div>
+          <div class="report-item border-b border-gray-200 pb-2">
+            <div class="report-title font-bold text-gray-900 mb-1">【${g.name}】</div>
+            <div class="report-content text-gray-800 whitespace-pre-wrap break-words pl-2 text-sm leading-relaxed">${text}</div>
           </div>
         `;
       }).join('');
