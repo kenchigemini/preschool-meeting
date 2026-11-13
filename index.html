@@ -240,7 +240,7 @@
         <i class="fa-solid fa-folder-open text-blue-700 text-lg"></i>
         <span class="font-bold text-blue-900 text-sm whitespace-nowrap">切換歷史會議：</span>
         <select id="meetingSelect" class="bg-white border border-blue-300 text-gray-800 rounded px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none flex-1 md:w-80">
-          <option value="">載入中...</option>
+          <option value="">載入最新會議中...</option>
         </select>
       </div>
 
@@ -320,7 +320,7 @@
       </div>
     </div>
 
-    <!-- A4 預覽紙張區域（改為 block 排版與 h-auto，防止內容長於一頁時溢出紙張底線） -->
+    <!-- A4 預覽紙張區域（block 排版與 h-auto，防止內容長於一頁時溢出紙張底線） -->
     <div class="print-container bg-gray-100 w-full max-w-4xl flex-1 p-4 md:p-6 overflow-y-auto block">
       
       <!-- 第一頁（或多頁）：會議紀錄 -->
@@ -460,7 +460,8 @@
     ];
 
     let db = null;
-    let currentMeetingId = 'sanmin_preschool_current';
+    let currentMeetingId = null;
+    let isInitialLoad = true;
     let unsubscribeCurrentDoc = null;
     let localData = {
       title: '115學年度第1學期期初園務會議',
@@ -548,6 +549,7 @@
         if (!newTitle || !newTitle.trim()) return;
 
         const newId = 'meeting_' + Date.now();
+        isInitialLoad = false;
         currentMeetingId = newId;
         localData = {
           id: newId,
@@ -584,7 +586,7 @@
             unsubscribeCurrentDoc = null;
           }
 
-          if (db) {
+          if (db && idToDelete) {
             await db.collection('meetings').doc(idToDelete).delete();
           }
 
@@ -592,7 +594,7 @@
           alert('會議紀錄已成功刪除！');
 
           const select = document.getElementById('meetingSelect');
-          const remainingOptions = Array.from(select.options).filter(opt => opt.value !== idToDelete);
+          const remainingOptions = Array.from(select.options).filter(opt => opt.value && opt.value !== idToDelete);
 
           if (remainingOptions.length > 0) {
             currentMeetingId = remainingOptions[0].value;
@@ -618,6 +620,18 @@
       document.getElementById('filterSignin').addEventListener('click', () => setModalFilter('signin'));
     }
 
+    function getMeetingTimestamp(docId, data) {
+      if (docId && docId.startsWith('meeting_')) {
+        const parsed = parseInt(docId.replace('meeting_', ''), 10);
+        if (!isNaN(parsed)) return parsed;
+      }
+      if (data && data.updatedAt) {
+        const parsedTime = Date.parse(data.updatedAt);
+        if (!isNaN(parsedTime)) return parsedTime;
+      }
+      return 0;
+    }
+
     function setupFirebase() {
       try {
         firebase.initializeApp(HARDCODED_FIREBASE_CONFIG);
@@ -629,8 +643,33 @@
 
           if (snapshot.empty) {
             select.innerHTML = '<option value="sanmin_preschool_current">預設會議紀錄</option>';
+            if (isInitialLoad || !currentMeetingId) {
+              isInitialLoad = false;
+              currentMeetingId = 'sanmin_preschool_current';
+              listenToCurrentMeeting();
+            }
           } else {
-            snapshot.docs.forEach(doc => {
+            // 依照會議日期由新到舊排序；若同日則依建立／更新時間由新到舊排序
+            const sortedDocs = [...snapshot.docs].sort((a, b) => {
+              const dataA = a.data() || {};
+              const dataB = b.data() || {};
+              const dateA = dataA.date || '0000-00-00';
+              const dateB = dataB.date || '0000-00-00';
+              if (dateB !== dateA) {
+                return dateB.localeCompare(dateA);
+              }
+              return getMeetingTimestamp(b.id, dataB) - getMeetingTimestamp(a.id, dataA);
+            });
+
+            const activeExists = currentMeetingId && sortedDocs.some(doc => doc.id === currentMeetingId);
+            const shouldSwitchToLatest = isInitialLoad || !activeExists;
+
+            if (shouldSwitchToLatest) {
+              isInitialLoad = false;
+              currentMeetingId = sortedDocs[0].id;
+            }
+
+            sortedDocs.forEach(doc => {
               const d = doc.data();
               const option = document.createElement('option');
               option.value = doc.id;
@@ -638,10 +677,12 @@
               if (doc.id === currentMeetingId) option.selected = true;
               select.appendChild(option);
             });
+
+            if (shouldSwitchToLatest) {
+              listenToCurrentMeeting();
+            }
           }
         });
-
-        listenToCurrentMeeting();
       } catch(e) {
         console.error("Firebase init failed:", e);
       }
@@ -653,7 +694,7 @@
         unsubscribeCurrentDoc = null;
       }
 
-      if (db) {
+      if (db && currentMeetingId) {
         unsubscribeCurrentDoc = db.collection('meetings').doc(currentMeetingId).onSnapshot(doc => {
           if (doc.exists) {
             localData = doc.data();
@@ -680,11 +721,13 @@
     }
 
     function switchMeeting(id) {
+      isInitialLoad = false;
       currentMeetingId = id;
       listenToCurrentMeeting();
     }
 
     function saveData() {
+      if (!currentMeetingId) return;
       localData.updatedAt = new Date().toISOString();
       localStorage.setItem('sanmin_meeting_data_' + currentMeetingId, JSON.stringify(localData));
       if (db) {
